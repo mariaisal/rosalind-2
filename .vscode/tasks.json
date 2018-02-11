@@ -3,33 +3,34 @@
   // for the documentation about the tasks.json format
   "version": "2.0.0",
   "tasks": [
-      {
-          "taskName": "Run File",
-          "command": "python3 ${file}",
-          "type": "shell",
-          "group": {
-              "kind": "build",
-              "isDefault": true
-          },
-          "presentation": {
-              "reveal": "always",
-              "panel": "new",
-              "focus": true
-          }
+    {
+      "label": "Run file",
+      "taskName": "Run File",
+      "command": "python3 ${file}",
+      "type": "shell",
+      "group": {
+        "kind": "build",
+        "isDefault": true
       },
-      {
-          "taskName": "nosetest",
-          "command": "nosetests -v",
-          "type": "shell",
-          "group": {
-              "kind": "test",
-              "isDefault": true
-          },
-          "presentation": {
-              "reveal": "always",
-              "panel": "new",
-              "focus": true
-          }
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "focus": true
       }
+    },
+    {
+      "label": "Run file 2",
+      "command": "python ${file}",
+      "type": "shell",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "focus": true
+      }
+    }
   ]
 }

@@ -1,84 +1,50 @@
-import random
-from random import choice
+from collections import defaultdict
+import numpy as np
+import math
 
-with open('rosalind_ba2g.txt') as f:
-    Dna = f.readlines()
-Dna = [x.strip() for x in Dna]
-y = Dna.pop(0)
-tem = y.split()
-k = int(tem[0])
-t = int(tem[1])
-n = int(tem[2])
+input_text = open('rosalind_ba10c.txt').read().split("--------\n")
+text = input_text[0].strip()
+all_character = input_text[1].split()
+all_hidden = input_text[2].split()
 
-Ctable = {'A': 0, 'C': 1, 'T': 2, 'G': 3}
+transition = np.zeros([len(all_hidden), len(all_hidden)])
+for h1, i in enumerate(input_text[3].split('\n')[1:]):
+    for h2, j in enumerate(i.split()[1:]):
+        transition[h1][h2] = float(j)
 
+emission = []
+for i in input_text[4].split('\n')[1:]:
+    dic = {}
+    for c, j in zip(all_character, i.split()[1:]):
+        dic[c] = float(j)
+    emission.append(dic)
 
-def Score(motif):
-    p = Profile(motif)
-    score = 0
-    for a in range(len(p)):
-        score += (4 + t - max(p[a]))
-    return score
+forward = np.zeros([len(text), len(all_hidden)])
+for i, t in enumerate(text):
+    for i1, _ in enumerate(all_hidden):
+        if i > 0:
+            for i2, _ in enumerate(all_hidden):
+                forward[i][i1] += forward[i - 1][i2] * transition[i2][i1]
+        else:
+            forward[i][i1] += 1
+        forward[i][i1] *= emission[i1][t]
+print(forward)
 
+backward = np.zeros([len(text), len(all_hidden)])
+rev_text = text[::-1]
+for i, t in enumerate(text[::-1]):
+    for i1, _ in enumerate(all_hidden):
+        if i > 0:
+            for i2, _ in enumerate(all_hidden):
+                backward[i][i1] += backward[i - 1][i2] * \
+                    emission[i2][rev_text[i - 1]] * transition[i1][i2]
+        else:
+            backward[i][i1] += 1
 
-def Motif(profile, dna):
-    probMot = []
-    i = 0
-    for a in range(len(dna) - k + 1):
-        sum = 1
-        c = 0
-        for b in range(i, i + k):
-            sum *= (profile[c][Ctable[dna[b]]])
-            c += 1
-        i += 1
-        probMot.append(sum)
+backward = np.flipud(backward)
+print(backward)
 
-    return probMot
-
-
-def Profile(motif):
-    p = []
-    for i in range(len(motif[0])):
-        for j in range(len(motif)):
-            if j == 0:
-                p.append([1, 1, 1, 1])
-                p[i][Ctable[motif[j][i]]] += 1
-            else:
-                p[i][Ctable[motif[j][i]]] += 1
-    return p
-
-
-def Gibbs(dna, k, t, n):
-    motif = []
-    for j in range(0, t):
-        i = random.randrange(0, len(dna[0]) - k + 1)
-        motif.append(dna[j][i:i + k])
-    bestMotif = list(motif)
-    for j in range(0, n):
-        i = random.randrange(0, t, 1)
-        motif.pop(i)
-        prof = Profile(motif)
-
-        temp = Motif(prof, dna[i])
-        print(temp)
-        # motifi <- profile randomly generate
-        idx = random.choices(list(range(0, len(dna[i]) - k + 1)), temp)
-
-        motif.insert(i, dna[i][idx[0]:idx[0] + k])
-        if Score(motif) < Score(bestMotif):
-            bestMotif = list(motif)
-    return bestMotif
-
-
-answer = []
-temp_motif = []
-answer = Gibbs(Dna, k, t, n)
-for i in range(0, 1):
-    sample_motif = Gibbs(Dna, k, t, n)
-    if Score(answer) > Score(sample_motif):
-        answer = sample_motif
-        print(answer, Score(answer))
-for i in answer:
-    print(i)
-
-    # used global answer,temp_motif,Dna,y,tem,k,t,n
+prob = forward * backward
+print(" ".join(all_hidden))
+for i, _ in enumerate(text):
+    print(" ".join([str(round(i, 4)) for i in (prob[i] / np.sum(prob[i]))]))

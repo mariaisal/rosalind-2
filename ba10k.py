@@ -8,6 +8,8 @@ Transition = [[]]
 Emission = [[]]
 
 with open('rosalind_ba10k.txt', 'r') as f:
+  epoch = int(f.readline().strip())
+  f.readline() # --------
   str = f.readline().strip()
   f.readline() # --------
   Observations = f.readline().strip().split()
@@ -38,10 +40,7 @@ for _ in range(epoch):
   for j in range(len(str)-2, -1, -1):
     for i in range(len(States)):
       for k in range(len(States)):
-        Backward[i, j] += Backward[k, j+1] * Transition[k, i] * Emission[i, Observations[str[j+1]]]
-
-  print(Forward)
-  print(Backward)
+        Backward[i, j] += Backward[k, j+1] * Transition[i, k] * Emission[k, Observations[str[j+1]]]
 
   Pr = Forward * Backward;
 
@@ -51,6 +50,7 @@ for _ in range(epoch):
     for j in range(len(States)):
       for k in range(len(States)):
         Pr_[i, j, k] = Forward[j, i] * Backward[k, i+1] * Transition[j, k] * Emission[k, Observations[str[i+1]]] / Sum
+  for i in range(len(str)):
     Pr[:, i] = Pr[:, i] / Sum;
 
   Transition = np.sum(Pr_, 0)
@@ -58,14 +58,37 @@ for _ in range(epoch):
     Transition[i] = Transition[i] / np.sum(Transition[i])
   
   Emission = np.zeros((len(States), len(Observations)))
-  for i in range(len(Observations)):
-    f = np.array(list(str)) == Observations[i]
-    Emission[:, i] = np.sum(Pr[f], 0)
+  for i in Observations:
+    f = np.array(list(str)) == i
+    Emission[:, Observations[i]] = np.sum(Pr[:, f], 1)
 
-  Emission = 
+  print(Emission)
+
+  for i in range(len(States)):
+    Emission[i] /= np.sum(Emission[i])
+  print(Emission)
     
 
-print(Pr)
-print(" ".join(States))
-for i in range(len(str)):
-    print(" ".join([str(round(i, 4)) for i in (Pr[i] / np.sum(Pr[i]))]))
+with open('rosalind_ba10k_output.txt', 'w') as out:
+  out.write("\t" + "\t".join(States) + "\n")
+  for i in range(len(States)):
+    s = np.array2string(
+      Transition[i],
+      formatter={'float_kind':lambda x: "%.4f" % x},
+      separator='\t',
+      prefix=""
+    )
+
+    out.write(States[i] + "\t" + s[1:-1] + "\n")
+  out.write("--------\n")
+    
+  out.write("\t" + "\t".join(Observations.keys()) + "\n")
+  for i in range(len(States)):
+    s = np.array2string(
+      Emission[i],
+      formatter={'float_kind':lambda x: "%.4f" % x},
+      separator='\t',
+      prefix=""
+    )
+
+    out.write(States[i] + "\t" + s[1:-1] + "\n")

@@ -62,6 +62,7 @@ for _ in range(epoch):
     temp_emis = []
     for c in all_character:
         filter_c = np.array(list(text)) == c
+        print('fs', filter_c, np.sum(pistar[filter_c], 0))
         temp_emis.append(np.sum(pistar[filter_c], 0))
     temp_emis = np.array(temp_emis).transpose()
 
